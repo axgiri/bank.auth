@@ -1,0 +1,77 @@
+services:
+  bank-authentication-service:
+    image: openjdk:17-alpine
+    container_name: bank-authentication-service
+    hostname: bank-authentication-service
+    ports:
+      - "8081:8080"
+    volumes:
+    - ./:/app
+    working_dir: /app
+    command: ./mvnw spring-boot:run
+    depends_on:
+      - bank-authentication-db
+    networks:
+      - auth-network
+
+  bank-authentication-db:
+    image: postgres:13-alpine
+    container_name: bank-authentication-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: authenticationdb
+    volumes:
+      - authentication_db_data:/var/lib/postgresql/data
+    networks:
+      - auth-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: bank-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ax@micro.kz
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "7313:80"
+    depends_on:
+      - bank-authentication-db
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - auth-network
+
+  # zookeeper:
+  #   image: confluentinc/cp-zookeeper:7.7.1
+  #   container_name: zookeeper
+  #   environment:
+  #     ZOOKEEPER_CLIENT_PORT: 2181
+  #     ZOOKEEPER_TICK_TIME: 2000
+  #   networks:
+  #     - auth-network
+
+
+  # kafka:
+  #   image: confluentinc/cp-kafka:7.7.1
+  #   container_name: kafka
+  #   depends_on:
+  #     - zookeeper
+  #   ports:
+  #     - "9092:9092"
+  #   environment:
+  #     KAFKA_BROKER_ID: 1
+  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  #   networks:
+  #     - auth-network
+
+networks:
+  auth-network:
+    driver: bridge
+
+volumes:
+  authentication_db_data:
+  pgadmin_data:

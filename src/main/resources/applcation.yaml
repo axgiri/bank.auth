@@ -1,0 +1,23 @@
+spring
+application:
+  name: bank-authentication
+  cloud:
+    config:
+      uri: http://localhost:8080
+      fail-fast: true
+      label: master
+  datasource:
+    url: jdbc:postgresql://authentication-db:5432/authenticationdb
+    username: root
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      ddl-auto: update
+    show-sql: true
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG

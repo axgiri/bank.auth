@@ -79,12 +79,3 @@ public class PersonController {
     }
 }
 
-//TODO:
-//tests
-//docker-compose and test by hands
-//upload postman.json
-//deployment
-
-// детская карта
-// регистрация по номеру телефона by actucating account
-// забыл пароль

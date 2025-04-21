@@ -1,4 +1,4 @@
-package github.axgiri.handler;
+package github.axgiri.bankauthentication.exception.handler;
 
 import java.time.Instant;
 import java.util.stream.Collectors;
@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
         ApiError err = new ApiError(
             Instant.now(),
             "VALIDATION_ERROR",
-            "Invalid request data",
+            "invalid request data",
             errors
         );
         return ResponseEntity.badRequest().body(err);
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
         ApiError err = new ApiError(
             Instant.now(),
             "SERVER_ERROR",
-            "Unexpected error",
+            "unexpected error",
             null
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
