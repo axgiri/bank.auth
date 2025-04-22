@@ -17,11 +17,10 @@ A Spring Boot microservice that provides user authentication and management via
 
 ## Tech Stack
 
-- **Java 17+**, **Spring Boot**, **Spring Security**, **Spring Data JPA**  
-- **JWT** (`io.jsonwebtoken`)  
-- **Lombok**, **Jakarta Validation**, **H2** (or any JPA-compatible database)  
-- **Asynchronous processing**: `@EnableAsync`, `ThreadPoolTaskExecutor`  
-- **Build**: Maven  
+- **Java 17+**  
+- **docker**
+- **kind**
+- **minikube**
 
 ---
 
@@ -31,6 +30,7 @@ A Spring Boot microservice that provides user authentication and management via
 - **Maven 3.6+**  
 - **Database** (H2 for development, PostgreSQL/MySQL for production)  
 - **Docker & Docker Compose** (optional)  
+- ***K8S engine** (optional)
 
 ---
 

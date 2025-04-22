@@ -5,6 +5,12 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,11 +22,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import github.axgiri.bankauthentication.service.TokenService;
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,6 +36,7 @@ public class AsyncJwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
         String header = request.getHeader("Authorization");
 
         if (header == null || !header.startsWith("Bearer ")) {
@@ -49,25 +51,31 @@ public class AsyncJwtFilter extends OncePerRequestFilter {
             try {
                 String jwt = header.substring(7);
                 String username = tokenService.extractUsername(jwt);
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                    Claims claims = tokenService.extractAllClaims(jwt).join();
-                    List<SimpleGrantedAuthority> authorities = ((List<?>) claims.get("roles"))
+                    Claims claims = tokenService.extractAllClaimsAsync(jwt).join();
+                    log.debug("Extracted claims: {}", claims);
+                    List<SimpleGrantedAuthority> auths = ((List<?>) claims.get("roles"))
                         .stream()
                         .map(r -> new SimpleGrantedAuthority((String) r))
                         .collect(Collectors.toList());
 
                     if (tokenService.isTokenValid(jwt, userDetails)) {
-                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                userDetails, null, authorities);
-                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, auths);
+                        authToken.setDetails(new WebAuthenticationDetailsSource()
+                            .buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                     }
                 }
                 filterChain.doFilter(asyncCtx.getRequest(), asyncCtx.getResponse());
             } catch (Exception e) {
-                log.info("Async JWT processing failed", e);
+                log.debug(("async JWT processing failed"));
+                try {
+                    filterChain.doFilter(asyncCtx.getRequest(), asyncCtx.getResponse());
+                } catch (Exception ex) {
+                    log.error("error in fallback filterChain", ex);
+                }
             } finally {
                 asyncCtx.complete();
             }

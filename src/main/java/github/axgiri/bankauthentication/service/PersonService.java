@@ -42,7 +42,7 @@ public class PersonService {
 
     public void createAsync(PersonRequest personRequest) {
         log.info("creating person with first name: {}", personRequest.getFirstName());
-        taskExecutor.execute(() -> {
+        taskExecutor.execute(() -> {            
             repository.save(personRequest.toEntity());
             log.info("created person with first name: {}", personRequest.getFirstName());
         });
@@ -52,7 +52,7 @@ public class PersonService {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getPhoneNumber(), request.getPassword()));
         var person = repository.findByPhoneNumber(request.getPhoneNumber())
             .orElseThrow(() -> new UserNotFoundException("user not found with phone number: " + request.getPhoneNumber()));
-        CompletableFuture<String> token = tokenService.generateToken(person);
+        CompletableFuture<String> token = tokenService.generateTokenAsync(person);
         return new AuthResponse(token.join(), PersonResponse.fromEntityToDto(person));
     }
 
