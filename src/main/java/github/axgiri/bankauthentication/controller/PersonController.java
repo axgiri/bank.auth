@@ -1,13 +1,15 @@
-package github.axgiri.bankauthentication.contoller;
+package github.axgiri.bankauthentication.controller;
 
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import github.axgiri.bankauthentication.dto.request.LoginRequest;
@@ -21,7 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
-@RestController("/api/v1/persons")
+@RestController
+@RequestMapping("/api/v1/persons")
 public class PersonController {
 
     private final PersonService service;
@@ -29,14 +32,14 @@ public class PersonController {
     @PostMapping("/signup")
     public ResponseEntity<PersonResponse> create(@Valid @RequestBody PersonRequest personRequest) {
         log.debug("creating person: {}", personRequest);
-        return ResponseEntity.ok(service.create(personRequest));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(personRequest));
     }
 
     @PostMapping("/async/signup")
     public ResponseEntity<Void> createAsync(@Valid @RequestBody PersonRequest personRequest) {
         log.debug("creating person: {}", personRequest);
         service.createAsync(personRequest);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
     @PostMapping("/login")
@@ -45,13 +48,13 @@ public class PersonController {
         return ResponseEntity.ok(authResponse);
     }
 
-    @PostMapping("/findById/{id}")
+    @GetMapping("/findById/{id}")
     public ResponseEntity<PersonResponse> findById(@PathVariable Long id) {
         log.debug("finding person with id: {}", id);
         return ResponseEntity.ok(service.findById(id));
     }
 
-    @PostMapping("/findByPhoneNumber/{phoneNumber}")
+    @GetMapping("/findByPhoneNumber/{phoneNumber}")
     public ResponseEntity<PersonResponse> findByPhoneNumber(@PathVariable String phoneNumber) {
         log.debug("finding person with phone number: {}", phoneNumber);
         return ResponseEntity.ok(service.findByPhoneNumber(phoneNumber));

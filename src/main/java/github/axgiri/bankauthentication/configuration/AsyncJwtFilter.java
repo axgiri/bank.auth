@@ -1,4 +1,4 @@
-package github.axgiri.bankauthentication.configiration;
+package github.axgiri.bankauthentication.configuration;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,6 +38,7 @@ public class AsyncJwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
+        String jwt = header.substring(7);
 
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -49,7 +50,6 @@ public class AsyncJwtFilter extends OncePerRequestFilter {
 
         asyncExecutor.execute(() -> {
             try {
-                String jwt = header.substring(7);
                 String username = tokenService.extractUsername(jwt);
 
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

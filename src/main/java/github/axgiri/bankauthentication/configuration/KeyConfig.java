@@ -1,4 +1,4 @@
-package github.axgiri.bankauthentication.configiration;
+package github.axgiri.bankauthentication.configuration;
 
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPrivateKey;
@@ -14,7 +14,7 @@ public class KeyConfig {
     
   @Bean
   public RSAPrivateKey jwtPrivateKey() throws Exception {
-    Resource resource = new ClassPathResource("keys/jwt_private.pem");
+    Resource resource = new ClassPathResource("keys/private-jwt.pem");
     try (var is = resource.getInputStream()) {
       var pem = new String(is.readAllBytes(), StandardCharsets.UTF_8);
       return (RSAPrivateKey) PemConfig.readPrivateKeyFromString(pem, "RSA");
@@ -23,7 +23,7 @@ public class KeyConfig {
 
   @Bean
   public RSAPublicKey jwtPublicKey() throws Exception {
-    Resource r = new ClassPathResource("keys/jwt_public.pem");
+    Resource r = new ClassPathResource("keys/public-jwt.pem");
     try (var is = r.getInputStream()) {
       var pem = new String(is.readAllBytes(), StandardCharsets.UTF_8);
       return (RSAPublicKey) PemConfig.readPublicKeyFromString(pem, "RSA");

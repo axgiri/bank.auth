@@ -1,4 +1,4 @@
-package github.axgiri.bankauthentication.configiration;
+package github.axgiri.bankauthentication.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +26,7 @@ public class SecurityConfiguration {
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/vi/persons/login", "/api/v1/persons/async/signup")
+                .requestMatchers("/api/v1/persons/login", "/api/v1/persons/async/signup","/api/v1/persons/signup", "/api/v1/jwks/.well-known/jwks.json")
                 .permitAll()
                 .anyRequest()
                 .authenticated()

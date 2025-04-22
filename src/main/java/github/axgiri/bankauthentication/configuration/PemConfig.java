@@ -1,4 +1,4 @@
-package github.axgiri.bankauthentication.configiration;
+package github.axgiri.bankauthentication.configuration;
 
 import java.security.KeyFactory;
 import java.security.PrivateKey;
