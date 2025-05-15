@@ -8,9 +8,9 @@ This service provides user registration, login, and JWT-based authentication. It
 
 Below is the list of other microservices in this banking ecosystem (see central GitHub organization for details):
 
-- Bank Gateway: https://github.com/axgiri
-- Account Service: https://github.com/axgiri
-- Transaction Service: https://github.com/axgiri
+- Bank Gateway: https://github.com/axgiri/bank.gateway (private)
+- Account Service: https://github.com/axgiri/bank.account (private)
+- Transaction Service: https://github.com/axgiri/bank.transaction (private)
 
 ## Table of Contents
 
