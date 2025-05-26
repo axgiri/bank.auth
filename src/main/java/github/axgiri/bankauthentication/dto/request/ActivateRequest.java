@@ -8,11 +8,11 @@ import lombok.Data;
 
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class LoginRequest {
-    
+public class ActivateRequest {
+
     @NotNull(message = "phone number cannot be null")
     private String phoneNumber;
 
-    @NotNull(message = "password cannot be null")
-    private String password;
+    @NotNull(message = "otp cannot be null")
+    private int otp;
 }

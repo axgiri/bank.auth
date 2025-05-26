@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import github.axgiri.bankauthentication.Enum.RoleEnum;
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,6 +26,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+@Entity
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -56,16 +58,15 @@ public class Person implements UserDetails {
     @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
-    @NotNull(message = "email cannot be null")
-    @Column(name = "email", unique = true)
-    private String email;
-
     @NotNull(message = "password cannot be null")
     private String password;
 
     @Enumerated
     @Column(name = "role_enum", nullable = true)
     private RoleEnum roleEnum;
+
+    @Column(name = "company_id", nullable = true)
+    private Long companyId;
 
     @Column(name = "created_at")
     private LocalDate createdAt;

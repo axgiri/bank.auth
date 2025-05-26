@@ -1,16 +1,15 @@
 package github.axgiri.bankauthentication.service;
 
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -19,69 +18,89 @@ import github.axgiri.bankauthentication.exception.InvalidTokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import lombok.RequiredArgsConstructor;
+import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 
-@Service
-@RequiredArgsConstructor
 @Slf4j
+@Service
 public class TokenService {
 
-    private final RSAPrivateKey privateKey;
-    private final RSAPublicKey  publicKey;
-
-    private static final long ACCESS_TOKEN_TTL_MIN = 10;
-
-    public String extractUsername(String jwt) {
+    @Value("${jwt.secret}")
+    private String KEY;
+        
+    public String extractUsername(String token) {
         try {
-            return extractAllClaimsAsync(jwt).join().getSubject();
+            return extractClaim(token, Claims::getSubject);
         } catch (Exception e) {
-            throw new InvalidTokenException("Cannot extract username: " + e.getMessage());
+            log.error("failed to extract username from token", e);
+            throw new InvalidTokenException("failed to extract username from token: " + token + "\n" + e.getMessage());
+        }
+    }
+    
+    @Async("asyncExecutor")
+    public CompletableFuture<Claims> extractAllClaimsAsync(String token) {
+        log.info("extracting claims from token: {}", token);
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSignInKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return CompletableFuture.completedFuture(claims);
+        } catch (Exception e) {
+            log.error("token validation failed: {}", e.getMessage());
+            return CompletableFuture.failedFuture(e);
         }
     }
 
+    private Key getSignInKey() {
+        byte[] keyBytes = KEY.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver){
+        final CompletableFuture<Claims> claim = extractAllClaimsAsync(token);
+        return claim.thenApply(claimsResolver).join();
+    }
+
     @Async("asyncExecutor")
-    public CompletableFuture<Claims> extractAllClaimsAsync(String jwt) {
-        log.info("extracting claims from token: {}", jwt);
+    public CompletableFuture<String> generateTokenAsync(Map<String, Object> extraClaims, UserDetails userDetails){
+        log.info("generating token for user: {}", userDetails.getUsername());
+        extraClaims.put("roles", userDetails.getAuthorities().stream()
+        .map(authority -> authority.getAuthority().replace("ROLE_", ""))
+        .collect(Collectors.toList()));
         try {
-            Claims claims = Jwts.parserBuilder()
-                .setSigningKey(publicKey)  // проверяем по публичному ключу
-                .build()
-                .parseClaimsJws(jwt)
-                .getBody();
-            return CompletableFuture.completedFuture(claims);
+            log.debug("generating future token for user with phone number: {}", userDetails.getUsername());
+            String token = Jwts.builder()
+                .setClaims(extraClaims)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+            return CompletableFuture.completedFuture(token);
         } catch (Exception e) {
-            log.error("Invalid JWT: {}", e.getMessage());
+            log.info("failed to generate token for user: {}", userDetails.getUsername(), e);
             return CompletableFuture.failedFuture(e);
         }
     }
 
     @Async("asyncExecutor")
-    public CompletableFuture<String> generateTokenAsync(UserDetails userDetails) {
-        Instant now = Instant.now();
-        Map<String, Object> extra = new HashMap<>();
-        extra.put("roles", userDetails.getAuthorities().stream()
-            .map(a -> a.getAuthority().replace("ROLE_", ""))
-            .collect(Collectors.toList()));
-
-        String token = Jwts.builder()
-            .setClaims(extra)
-            .setSubject(userDetails.getUsername())
-            .setId(UUID.randomUUID().toString())  // jti — для отзыва
-            .setIssuedAt(Date.from(now))
-            .setExpiration(Date.from(now.plus(ACCESS_TOKEN_TTL_MIN, ChronoUnit.MINUTES)))
-            .signWith(privateKey, SignatureAlgorithm.RS256)
-            .compact();
-        return CompletableFuture.completedFuture(token);
+    public CompletableFuture<String> generateToken(UserDetails userDetails){
+        return generateTokenAsync(new HashMap<>(), userDetails);
     }
 
-    public boolean isTokenValid(String jwt, UserDetails userDetails) {
-        try {
-            Claims c = extractAllClaimsAsync(jwt).join();
-            return c.getSubject().equals(userDetails.getUsername())
-                && c.getExpiration().after(new Date());
-        } catch (Exception e) {
-            return false;
-        }
+    public boolean isTokenValid(String token, UserDetails userDetails){
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+    }
+
+    private boolean isTokenExpired(String token){
+        return extractExpiration(token).before(new Date());
+    }
+
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
     }
 }

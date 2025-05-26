@@ -1,5 +1,6 @@
 package github.axgiri.bankauthentication.controller;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.springframework.http.HttpStatus;
@@ -7,9 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import github.axgiri.bankauthentication.dto.request.LoginRequest;
@@ -76,9 +79,28 @@ public class PersonController {
     @GetMapping("/validate")
     public ResponseEntity<String> validate(@RequestHeader("Authorization") String token){
         log.debug("validating token: {}", token);
-        token = token.substring(7);
         service.validateToken(token);
         return ResponseEntity.ok("validation successful");
     }
-}
 
+    @GetMapping("/getRoleName")
+    public ResponseEntity<String> getRoleName(@RequestHeader("Authorization") String token){
+        log.debug("getting role from token: {}", token);
+        String role = service.getRole(token);
+        return ResponseEntity.ok(role);
+    }
+
+    @GetMapping("/getMyColleagues")
+    public ResponseEntity<List<PersonResponse>> getColleagues(@RequestHeader("Authorization") String token) {
+        log.debug("getting colleagues for token: {}", token);
+        service.validateToken(token);
+        return ResponseEntity.ok(service.getColleaguesAsync(token));
+    }
+
+    @PutMapping("/updatePassword")
+    public ResponseEntity<Void> updatePassword(@Valid @RequestBody LoginRequest loginRequest, @RequestParam String oldPassword) {
+        log.debug("updating password for phone number: {}", loginRequest.getPhoneNumber());
+        service.updatePasswordAsync(loginRequest, oldPassword);
+        return ResponseEntity.ok().build();
+    }
+}

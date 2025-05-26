@@ -1,6 +1,6 @@
 # Bank Authentication Service
 
-**Bank Authentication Service** is one of the microservices in the full-fledged banking application.
+**Regi Authentication Service** is one of the microservices in the full-fledged supply of services application.
 
 This service provides user registration, login, and JWT-based authentication. It is built with Spring Boot and secured using RS256-signed JSON Web Tokens (JWT). Kubernetes manifests are included for containerized deployment.
 
@@ -8,9 +8,9 @@ This service provides user registration, login, and JWT-based authentication. It
 
 Below is the list of other microservices in this banking ecosystem (see central GitHub organization for details):
 
-- Bank Gateway: https://github.com/axgiri/bank.gateway (private)
-- Account Service: https://github.com/axgiri/bank.account (private)
-- Transaction Service: https://github.com/axgiri/bank.transaction (private)
+- Regi Gateway: https://github.com/axgiri/regi.gateway (private)
+- Regi Company Service: https://github.com/axgiri/regi.company (private)
+- Regi Notification Service: https://github.com/axgiri/regi.notification (private)
 
 ## Table of Contents
 
@@ -29,23 +29,16 @@ Below is the list of other microservices in this banking ecosystem (see central 
 - Maven 3.6+
 - Docker (for containerization)
 - Kubernetes cluster (for k8s deployment)
-- `openssl` (for key generation)
 
 ## Getting Started
 
-1. **Clone the repository**
+ **Clone the repository**
 
    ```bash
-   git clone https://github.com/axgiri/bank.authentication.git
+   git clone https://github.com/axgiri/regi.authentication.git
    cd bank.authentication
    ```
 
-2. **Generate RSA keys**
-
-   ```bash
-   openssl genrsa -out src/main/resources/keys/jwt_private.pem 2048
-   openssl rsa -in src/main/resources/keys/jwt_private.pem -pubout -out src/main/resources/keys/jwt_public.pem
-   ```
 
 ## Configuration
 
@@ -54,10 +47,6 @@ Edit `src/main/resources/application.yml` to configure:
 ```yaml
 server:
   port: 8081
-
-jwt:
-  issuer: https://auth.example.com
-  # No HMAC secret needed when using RS256 + JWKS
 
 spring:
   datasource:
@@ -98,12 +87,6 @@ Manifests are available in the `k8s/` directory:
 ```bash
 kubectl apply -f k8s/deployment.yaml
 kubectl apply -f k8s/service.yaml
-```
-
-Make sure to create a `Secret` for the RSA private key:
-
-```bash
-kubectl create secret generic auth-keys --from-file=keys/jwt_private.pem
 ```
 
 ## API Endpoints

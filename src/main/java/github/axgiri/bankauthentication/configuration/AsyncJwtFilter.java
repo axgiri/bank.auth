@@ -34,6 +34,7 @@ public class AsyncJwtFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private final Executor asyncExecutor;
 
+    @SuppressWarnings("null")
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 

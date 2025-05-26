@@ -2,5 +2,5 @@ package github.axgiri.bankauthentication.Enum;
 
 public enum RoleEnum {
 
-    ADMIN, USER;
+    ADMIN, MODERATOR, USER;
 }
